@@ -29,8 +29,5 @@
     <ClInclude Include="Transactions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Portfolio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
+#include <cpprest/http_msg.h>
 #include "Transactions.h"
-#include "Portfolio.h"
 
 namespace sql
 {
@@ -17,15 +17,15 @@ public:
 	
 	static DatabaseManager& getInstance();
 
-	int getTraderId(const std::string& userName);
-	int getTraderId(const std::string& userName, const std::string& password);
+	int getTraderId(const std::wstring& userName);
+	int getTraderId(const std::wstring& userName, const std::wstring& password);
 
-	double quote(const std::string& userName, const std::string& password, unsigned int stockCode);
-	void sell(const std::string& userName, const std::string& password, unsigned int stockCode, int quantity, double price);
-	void buy(const std::string& userName, const std::string& password, unsigned int stockCode, int quantity, double price);
-	int registerTrader(const std::string& userName, const std::string& password);
-	Transactions transactions(const std::string& userName, const std::string& password);
-	Portfolio portfolioList(const std::string& userName, const std::string& password);
+	double quote(const std::wstring& userName, const std::wstring& password, unsigned int stockCode, web::http::status_code& statusCode);
+	void sell(const std::wstring& userName, const std::wstring& password, unsigned int stockCode, int quantity, double price, web::http::status_code& statusCode);
+	void buy(const std::wstring& userName, const std::wstring& password, unsigned int stockCode, int quantity, double price, web::http::status_code& statusCode);
+	int registerTrader(const std::wstring& userName, const std::wstring& password, web::http::status_code& statusCode);
+	std::unique_ptr<ISerializable> transactions(const std::wstring& userName, const std::wstring& password, web::http::status_code& statusCode);
+	std::unique_ptr<ISerializable> portfolio(const std::wstring& userName, const std::wstring& password, web::http::status_code& statusCode);
 protected:
 	DatabaseManager();
 	~DatabaseManager();

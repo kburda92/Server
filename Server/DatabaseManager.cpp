@@ -7,6 +7,7 @@
 #include <cppconn/prepared_statement.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <cpprest/asyncrt_utils.h>
 
 DatabaseManager & DatabaseManager::getInstance()
 {
@@ -14,10 +15,10 @@ DatabaseManager & DatabaseManager::getInstance()
 	return instance;
 }
 
-int DatabaseManager::getTraderId(const std::string & userName)
+int DatabaseManager::getTraderId(const std::wstring & userName)
 {
 	auto query = conn->prepareStatement("SELECT id FROM traders WHERE username = ?");
-	query->setString(1, userName);
+	query->setString(1, utility::conversions::utf16_to_utf8(userName).c_str());
 	auto result = query->executeQuery();
 
 	int ret = 0;
@@ -29,14 +30,14 @@ int DatabaseManager::getTraderId(const std::string & userName)
 	return ret;
 }
 
-int DatabaseManager::getTraderId(const std::string & userName, const std::string & password)
+int DatabaseManager::getTraderId(const std::wstring & userName, const std::wstring & password)
 {
 	int id = getTraderId(userName);
 	if (!id)
 		return 0;
-	auto query = conn->prepareStatement("SELECT count(id) as exists FROM traders WHERE id = ? AND password = ?");
+	auto query = conn->prepareStatement("SELECT count(id) as \"exists\" FROM traders WHERE id = ? AND password = ?;");
 	query->setInt(1, id);
-	query->setString(2, password);
+	query->setString(2, utility::conversions::utf16_to_utf8(password).c_str());
 	auto result = query->executeQuery();
 	
 	int ret = 0;
@@ -51,24 +52,32 @@ int DatabaseManager::getTraderId(const std::string & userName, const std::string
 	return ret;
 }
 
-double DatabaseManager::quote(const std::string & userName, const std::string & password, unsigned int stockCode)
+double DatabaseManager::quote(const std::wstring & userName, const std::wstring & password, unsigned int stockCode, web::http::status_code& statusCode)
 {
 	if (!getTraderId(userName, password))
+	{
+		statusCode = web::http::status_codes::Unauthorized;
 		return 0.0;
+	}
 	auto query = conn->prepareStatement("SELECT last_sale_price FROM stocks WHERE code = ?");
 	query->setUInt64(1, stockCode);
 	auto result = query->executeQuery();
 	
 	double ret = 0.0;
 	if (result->next())
+	{
+		statusCode = web::http::status_codes::OK;
 		ret = result->getDouble("last_sale_price");
+	}
+	else
+		statusCode = web::http::status_codes::NotFound;
 
 	delete query;
 	delete result;
 	return ret;
 }
 
-void DatabaseManager::sell(const std::string & userName, const std::string & password, unsigned int stockCode, int quantity, double price)
+void DatabaseManager::sell(const std::wstring & userName, const std::wstring & password, unsigned int stockCode, int quantity, double price, web::http::status_code& statusCode)
 {
 	if (!getTraderId(userName, password))
 		return;
@@ -77,52 +86,60 @@ void DatabaseManager::sell(const std::string & userName, const std::string & pas
 	//auto result = query->executeQuery();
 }
 
-void DatabaseManager::buy(const std::string & userName, const std::string & password, unsigned int stockCode, int quantity, double price)
+void DatabaseManager::buy(const std::wstring & userName, const std::wstring & password, unsigned int stockCode, int quantity, double price, web::http::status_code& statusCode)
 {
 	if (!getTraderId(userName, password))
 		return;
 }
 
-int DatabaseManager::registerTrader(const std::string & userName, const std::string & password)
+int DatabaseManager::registerTrader(const std::wstring & userName, const std::wstring & password, web::http::status_code& statusCode)
 {
 	if (getTraderId(userName))
 		return 0;
 	auto query = conn->prepareStatement("INSERT INTO traders(username, password) VALUES (?,?)");
-	query->setString(1, userName);
-	query->setString(2, password);
+	query->setString(1, utility::conversions::utf16_to_utf8(userName).c_str());
+	query->setString(2, utility::conversions::utf16_to_utf8(password).c_str());
 	auto result = query->executeUpdate();
 
 	delete query;
 	return result;
 }
 
-Transactions DatabaseManager::transactions(const std::string & userName, const std::string & password)
+std::unique_ptr<ISerializable> DatabaseManager::transactions(const std::wstring & userName, const std::wstring & password, web::http::status_code& statusCode)
 {
 	int id = getTraderId(userName, password);
 	if (!id)
-		return Transactions();
+	{
+		statusCode = web::http::status_codes::Unauthorized;
+		return nullptr;
+	}
 	auto query = conn->prepareStatement("SELECT stock_code, quantity, datetime, name as status FROM transactions t INNER JOIN transactionstatuses s ON t.status_id = s.id WHERE trader_id = ?");
 	query->setUInt64(1, id);
 	auto result = query->executeQuery();
 
-	auto transactions = TransactionsFactory::get(result);
+	std::unique_ptr<ISerializable> transactions = std::make_unique<Transactions>(result);
 	delete query;
 	delete result;
+	statusCode = web::http::status_codes::OK;
 	return transactions;
 }
 
-Portfolio DatabaseManager::portfolioList(const std::string & userName, const std::string & password)
+std::unique_ptr<ISerializable> DatabaseManager::portfolio(const std::wstring & userName, const std::wstring & password, web::http::status_code& statusCode)
 {
 	int id = getTraderId(userName, password);
 	if (!id)
-		return Portfolio();
+	{
+		statusCode = web::http::status_codes::Unauthorized;
+		return nullptr;
+	}
 	auto query = conn->prepareStatement("SELECT stock_code, quantity, total_cost, last_sale_price FROM portfolios p INNER JOIN stocks s ON p.stock_code = s.code WHERE trader_id = ?");
 	query->setUInt64(1, id);
 	auto result = query->executeQuery();
 
-	auto portfolio = PortfolioFactory::get(result);
+	std::unique_ptr<ISerializable> portfolio = std::make_unique<Portfolio>(result);
 	delete query;
 	delete result;
+	statusCode = web::http::status_codes::OK;
 	return portfolio;
 }
 
