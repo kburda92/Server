@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `portfolios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `portfolios` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `trader_id` int(11) NOT NULL,
   `stock_code` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
@@ -53,7 +53,7 @@ DROP TABLE IF EXISTS `stocks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `stocks` (
-  `code` int(11) NOT NULL,
+  `code` int(11) NOT NULL AUTO_INCREMENT,
   `last_sale_price` decimal(15,2) NOT NULL,
   PRIMARY KEY (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -76,12 +76,12 @@ DROP TABLE IF EXISTS `traders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `traders` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(10) NOT NULL,
   `password` varchar(10) NOT NULL,
-  `balance` decimal(15,2) NOT NULL,
+  `balance` decimal(15,2) NOT NULL DEFAULT '100000.00',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -90,6 +90,7 @@ CREATE TABLE `traders` (
 
 LOCK TABLES `traders` WRITE;
 /*!40000 ALTER TABLE `traders` DISABLE KEYS */;
+INSERT INTO `traders` VALUES (1,'Krzysztof','password1',100000.00);
 /*!40000 ALTER TABLE `traders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -101,7 +102,7 @@ DROP TABLE IF EXISTS `transactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `transactions` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `trader_id` int(11) NOT NULL,
   `stock_code` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
@@ -134,7 +135,7 @@ DROP TABLE IF EXISTS `transactionstatuses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `transactionstatuses` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -158,4 +159,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-07 18:49:10
+-- Dump completed on 2017-10-08 11:29:41
