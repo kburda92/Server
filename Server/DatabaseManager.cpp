@@ -5,6 +5,8 @@
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 DatabaseManager & DatabaseManager::getInstance()
 {
@@ -129,8 +131,15 @@ DatabaseManager::DatabaseManager()
 	auto driver = get_driver_instance();
 	if (!driver)
 		throw std::string("MySql driver was not found!");
-	
-	conn = driver->connect("tcp://127.0.0.1:3306", "root", "pass1");
+
+	boost::property_tree::ptree pt;
+	boost::property_tree::ini_parser::read_ini("config.ini", pt);
+
+	auto host = pt.get<std::string>("database.host");
+	auto user = pt.get<std::string>("database.name");
+	auto pass = pt.get<std::string>("database.password");
+
+	conn = driver->connect(host.c_str(), user.c_str(), pass.c_str());
 	if(!conn->isValid())
 		throw std::string("MySql connection problem");
 	
