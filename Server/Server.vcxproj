@@ -153,7 +153,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DatabaseManager.h" />
-    <ClInclude Include="Transaction.h" />
+    <ClInclude Include="Portfolio.h" />
+    <ClInclude Include="Transactions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

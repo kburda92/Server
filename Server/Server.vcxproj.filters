@@ -26,7 +26,10 @@
     <ClInclude Include="DatabaseManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transaction.h">
+    <ClInclude Include="Transactions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Portfolio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
